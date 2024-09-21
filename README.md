@@ -1,4 +1,5 @@
 # Lithium is in it's WIP stage. Do not expect much from it right now!
+[Workshop item](https://steamcommunity.com/sharedfiles/filedetails/?id=3334367687)
 ## Description
 Lithium is a multipurpose multirealm performance improvement addon aimed at trying to optimise gmod's parts that can be accessed through addons as much as possible.
 This addon will improve your performance, especially with poorly-written addons.
