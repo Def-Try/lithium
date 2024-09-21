@@ -121,7 +121,7 @@ function render.DrawTextureToScreen(tex)
 end
 
 function render.DrawTextureToScreenRect(tex, x, y, w, h)
-	if not (isnumber(x) and yisnumber(y) and isnumber(w) and isnumber(h)) then error("Either x, y, w, or h is invalid (not a number)") end
+	if not (isnumber(x) and isnumber(y) and isnumber(w) and isnumber(h)) then error("Either x, y, w, or h is invalid (not a number)") end
 	matFSB:SetFloat("$alpha", 1.0)
 	matFSB:SetTexture("$basetexture", tex)
 

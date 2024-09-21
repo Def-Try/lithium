@@ -9,7 +9,6 @@ require("lithium")
 lithium.log("Lithium starting")
 
 timer.Create("LITHIUM_garbage_collector", 5 * 60, 0, function()
-	require("lithium")
 	lithium.gc()
 end)
 

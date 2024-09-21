@@ -55,7 +55,6 @@ function hook.Add(event_name, name, func, priority)
 	if not isstring(name) and notValid then
 		return ErrorNoHaltWithStack("bad argument #2 to 'Add' (string expected, got "..type(name)..")")
 	end
-	if isnumber(name) then name = tostring(name) end
 
 	local hook_table = hooks[event_name]
 	local hook_lookup_table = hooks_lookup[event_name]
@@ -113,8 +112,6 @@ function hook.Remove(event_name, name)
 		end
 	end
 
-	if isnumber(name) then name = tostring(name) end
-
 	local hook_table = hooks[event_name]
 	local hook_lookup_table = hooks_lookup[event_name]
 
@@ -123,22 +120,16 @@ function hook.Remove(event_name, name)
 		if not id then
 			continue
 		end
-		local hook_table = hook_table[priority]
-		local hook_lookup_table = hook_lookup_table[priority]
+		local hook_table_i = hook_table[priority]
+		local hook_lookup_table_i = hook_lookup_table[priority]
 
-		local fill_id = table.maxn(hook_table)
-		local fill_name = hook_lookup_table[table.maxn(hook_table)]
-
-		hook_table[id] = hook_table[fill_id]
-		hook_lookup_table[id] = hook_lookup_table[fill_id]
-		hook_lookup_table[name] = hook_lookup_table[fill_name]
-
-		hook_table[fill_id] = nil
-		hook_lookup_table[fill_id] = nil
-		hook_lookup_table[fill_name] = nil
+		hook_table_i[id] = nil
+		hook_lookup_table_i[id] = nil
+		hook_lookup_table_i[name] = nil
 	end
 
-	hooks_backward[event_name][name] = nil
+	--print(event_name, name)
+	if hooks_backward[event_name] then hooks_backward[event_name][name] = nil end
 end
 
 function hook.Call(name, gm, ...)
