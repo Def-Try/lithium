@@ -1,8 +1,5 @@
 AddCSLuaFile()
 
-require("lithium")
-lithium.log("'Lithium: Client Functions' override loading")
-
 local frame_time = 0
 local last_query = 0
 

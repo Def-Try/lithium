@@ -3,9 +3,6 @@ AddCSLuaFile()
 -- We don't want this to run in menu state, and render.GetAmbientLightColor doesn't exist in menu state
 if not render or not render.GetAmbientLightColor then return end
 
-require("lithium")
-lithium.log("'Lithium: Render' override loading")
-
 --[[---------------------------------------------------------
   Short aliases for stencil constants
 -----------------------------------------------------------]]

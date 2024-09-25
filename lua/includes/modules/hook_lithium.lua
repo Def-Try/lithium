@@ -1,7 +1,6 @@
-AddCSLuaFile()
+if hook.GetLithiumTables then return end
 
-require("lithium")
-lithium.log("'Lithium: Hook Module' override loading")
+AddCSLuaFile()
 
 local hooks = {}
 local hooks_backward = {}
@@ -16,24 +15,6 @@ HOOK_HIGH = -1
 HOOK_NORMAL = 0
 HOOK_LOW = 1
 HOOK_MONITOR_LOW = 2
-
-if file.Exists("ulib/shared/hook.lua", "LUA") then -- ulib support (?)
-	local old_include = _G.include
-	function include(f, ...)
-		if f == "ulib/shared/hook.lua" then
-			lithium.log("Stopped ULX hook from loading. If you encounter errors, go ahead and report them.")
-			_G.include = old_include
-			return
-		end
-		return old_include(f, ...)
-	end
-end
-
-if file.Exists("dlib/modules/hook.lua", "LUA") then
-	lithium.warn("DLib is installed. DLib is a bloated addon.")
-	lithium.warn("DLib also has a slower hook module. If you don't understand what it means, THIS MAKES YOUR SERVER / GAME SLOWER.")
-	lithium.warn("See https://github.com/Def-Try/lithium for more info.")
-end
 
 function hook.GetTable()
 	return hooks_backward
@@ -60,7 +41,6 @@ function hook.Add(event_name, name, func, priority)
 	local hook_lookup_table = hooks_lookup[event_name]
 	if not hook_table then
 		hooks[event_name] = {[-2]={}, [-1]={}, [0]={}, [1]={}, [2]={}}
-		hooks_backward[event_name] = {}
 		hooks_lookup[event_name] = {[-2]={}, [-1]={}, [0]={}, [1]={}, [2]={}}
 		hook_table = hooks[event_name]
 		hook_lookup_table = hooks_lookup[event_name]
@@ -82,19 +62,20 @@ function hook.Add(event_name, name, func, priority)
 		end
 	end
 
-	local first_free = (table.maxn(hook_table) or 0) + 1
-	for k=1, table.maxn(hook_table) do
-		if hook_table[k] ~= nil then continue end
-		first_free = k
-		break
-	end
+	local id = hook_lookup_table[name] or (table.maxn(hook_table) + 1)
 
-	local id = hook_lookup_table[name] or first_free
+	remove_check = false
+	hook.Remove(event_name, name)
+	remove_check = true
 
 	hook_lookup_table[id] = name
 	hook_lookup_table[name] = id
 
 	hook_table[id] = func
+
+	if not hooks_backward[event_name] then
+		hooks_backward[event_name] = {}
+	end
 
 	hooks_backward[event_name][name] = func
 end
@@ -161,5 +142,14 @@ function hook.Run(name, ...)
 	if not gm then gm = gmod and gmod.GetGamemode() or nil end
 	return hook.Call(name, gm, ...)
 end
+
+module("hook")
+
+Call = hook.Call
+Run = hook.Run
+Add = hook.Add
+Remove = hook.Remove
+GetTable = hook.GetTable
+GetLithiumTables = hook.GetLithiumTables
 
 return hook
