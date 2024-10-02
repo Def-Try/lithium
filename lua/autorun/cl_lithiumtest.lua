@@ -1,5 +1,4 @@
 if not CLIENT then return end
-
 local frametimes = {}
 
 local function bench(id, start, end_, iters)
@@ -35,20 +34,17 @@ local function fps_bench()
 	print("min "..math.Round(min, 5), "max "..math.Round(max, 5), "avg "..math.Round(avg, 5), "cur "..math.Round(1 / FrameTime(), 5))
 end
 
+--for i=0,1000,1 do
+--	hook.Add("HookTest", tostring(i), function() CurTime() end)
+--end
 hook.Add("PostRender", "lithium_test", function()
 	do return end
 	-- fps_bench()
 	local start = SysTime()
-		for i=0,5000,1 do
-			Material("phoenix_storms/wire/pcb_green")
+		for i=0,1000,1 do
+			hook.Run("HookTest")
 		end
 	local end_ = SysTime()
-	bench('material embedded', start, end_, 1)
 
-	local start = SysTime()
-		for i=0,5000,1 do
-			Material("camcoder/gui/icon.png")
-		end
-	local end_ = SysTime()
-	bench('material png', start, end_, 1)
+	bench('hook 1k', start, end_, 1000)
 end)

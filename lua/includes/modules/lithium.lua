@@ -6,6 +6,9 @@ local collectgarbage = collectgarbage
 local SysTime = SysTime
 local round = math.floor
 local ErrorNoHalt = ErrorNoHalt
+local file = file
+local CLIENT = CLIENT
+local SERVER = SERVER
 
 module("lithium")
 
@@ -15,6 +18,12 @@ end
 
 function warn(text)
 	ErrorNoHalt("[LITHIUM] "..text.."\n")
+end
+
+local debug_ = false
+function debug(text)
+	if not debug_ then return end
+	log(text)
 end
 
 function gc()
@@ -29,12 +38,3 @@ function gc()
 	log("Done. Collected "..cleared.."kb of garbage, took "..took_time.."ms")
 	log("Memory usage is now at "..round(now).."kb")
 end
-
-datatypes = {
-	enable = true,
-
-	enable_creation_optimisation = false, -- this isn't really an "optimisation", it 2x's
-										  -- the time on average to create 10000 vectors in my tests
-
-	enable_defaults_override = false, 	  -- pretty much useless
-}
