@@ -1,5 +1,3 @@
-AddCSLuaFile()
-
 if hook.GetULibTable then return end
 
 require("lithium")

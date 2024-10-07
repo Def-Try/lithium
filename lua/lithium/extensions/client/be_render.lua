@@ -33,6 +33,7 @@ local MATH_cos = math.cos
 local MATH_DEG_2_RAD = math.pi / 180
 
 local RENDER_GetFogDistances = render.GetFogDistances
+local RENDER_GetFogMode = render.GetFogMode
 local UTIL_PixelVisible = util.PixelVisible
 
 local EFL_NO_THINK_FUNCTION = EFL_NO_THINK_FUNCTION
@@ -117,9 +118,11 @@ local function CalculateRenderablesVisibility(view_origin, view_angle, fov)
 		local diagonal_sqr = entity_t.diagonal_sqr
 		local dist_sqr = VECTOR_DistToSqr(view_origin, origin)
 		local in_fog = false
-		local _, fog_end = RENDER_GetFogDistances()
-		if fog_end > 0 then
-			in_fog = dist_sqr > fog_end * fog_end + diagonal_sqr
+		if RENDER_GetFogMode() ~= 0 then
+			local _, fog_end = RENDER_GetFogDistances()
+			if fog_end > 0 then
+				in_fog = dist_sqr > fog_end * fog_end + diagonal_sqr
+			end
 		end
 		local visible, outside_pvs = false, false
 		if in_fog then
@@ -155,8 +158,6 @@ local function CalculateRenderablesVisibility(view_origin, view_angle, fov)
 end
 
 hook.Add('PreRender', 'CalculateRenderablesVisibility', function()
-
-	-- return end
 	if not VIEW_ORIGIN then return end
 	CalculateRenderablesVisibility(VIEW_ORIGIN, VIEW_ANGLE, FOV_VIEW)
 end)

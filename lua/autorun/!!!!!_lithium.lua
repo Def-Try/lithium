@@ -1,5 +1,32 @@
 AddCSLuaFile()
 
+
+local function send_dir(dir)
+    dir = dir .. "/"
+    local File, Directory = file.Find(dir.."*", "LUA")
+
+    for k, v in ipairs(File) do
+        if not string.EndsWith(v, ".lua") then continue end
+        local fileSide = string.lower(string.Left(v, 3))
+	    if fileSide == "sh_" then
+	        AddCSLuaFile(dir..v)
+	    elseif fileSide == "cl_" then
+	        AddCSLuaFile(dir..v)
+    	end
+    end
+    
+    for k, v in ipairs(Directory) do
+        send_dir(dir..v)
+    end
+end
+
+if SERVER then
+	send_dir("lithium")
+	AddCSLuaFile("includes/modules/hook_lithium.lua")
+	AddCSLuaFile("includes/modules/lithium.lua")
+	AddCSLuaFile("autorun/client/cl_lithium_controls.lua")
+end
+
 local enable_convar = CreateConVar("lithium_enabled_"..(SERVER and "sv" or CLIENT and "cl" or "unk"), "1", {FCVAR_ARCHIVE}, "Enable Lithium (requires restart)", 0, 1)
 if not enable_convar:GetBool() then
 	return print("[LITHIUM] Skipping startup, lithium is disabled.")
@@ -19,15 +46,17 @@ end
 
 local enable_gc = mk_convar("enable_garbagecollector", "Enable Lithium Garbage Collector", true, true, 1)
 local enable_hook = mk_convar("enable_hookmodule", "Enable Lithium Hook Module", true, true, 1)
+local enable_convars = mk_convar("enable_convars", "Enable Lithium Optimised ConVars", true, true, 1)
 local enable_clientutil = mk_convar("enable_clientutil", "Enable Lithium Client Utilities", true, false, 1)
 local enable_renderutil = mk_convar("enable_renderutil", "Enable Lithium Render Utilities", true, false, 1)
+local enable_betterrender = mk_convar("enable_betterrender", "Enable Lithium Better Render", true, false, 1)
 local enable_utils = mk_convar("enable_util", "Enable Lithium Utilities", true, true, 0)
 local enable_gpusaver = mk_convar("enable_gpusaver", "Enable Lithium GPU Out-Of-Focus Saver", true, false, 1)
 
 require("lithium")
 
 lithium.log("Core systems starting...")
-local loaded, total = 0, 0
+local loaded, total, list = 0, 0, {}
 
 if enable_gc:GetBool() then
 	lithium.log("Starting: Garbage Collector")
@@ -53,6 +82,7 @@ local function load(name, func, skip)
 		return {false, err_or_ret}
 	end
 	loaded = loaded + 1
+	list[#list + 1] = name
 	return {true, err_or_ret}
 end
 
@@ -70,7 +100,7 @@ load("Hook System", function()
 			hook.Add(event, name, func)
 		end
 	end
-	if file.Exists("ulib/shared/hook.lua", "LUA") then -- ulib support (?)
+	if file.Exists("ulib/shared/hook.lua", "LUA") then -- ulib support
 		local old_include = _G.include
 		function include(f, ...)
 			if f == "ulib/shared/hook.lua" then
@@ -92,11 +122,13 @@ end, not enable_hook:GetBool())
 
 if CLIENT then
 	load_include("extensions/client/render.lua", "Render functions", not enable_renderutil:GetBool())
+	load_include("extensions/client/be_render.lua", "Better Render", not enable_betterrender:GetBool())
 	load_include("util/client.lua", "Client functions", not enable_clientutil:GetBool())
 end
 
 load_include("util.lua", "Util functions", not enable_utils:GetBool())
 
+local loaded_total, total_total = loaded, total
 lithium.log("Core systems startup complete. Loaded: "..loaded.."/"..total)
 
 lithium.log("Auxiliary systems starting...")
@@ -105,6 +137,19 @@ if CLIENT then
 	load_include("gpusaver.lua", "GPU Out-Of-Focus Saver", not enable_gpusaver:GetBool())
 end
 
+load_include("convars.lua", "Optimised ConVars", not enable_convars:GetBool())
+
+loaded_total, total_total = loaded_total + loaded, total_total + total
 lithium.log("Auxiliary systems startup complete. Loaded: "..loaded.."/"..total)
 
--- include("lithium/includes/util/tracer_mode.lua").start()
+if CLIENT then
+	hook.Add("InitPostEntity", "LITHIUM_Notify", function()
+		notification.AddLegacy("[LITHIUM] Lithium is installed!", NOTIFY_HINT, 5)
+		timer.Simple(5, function()
+			notification.AddLegacy("[LITHIUM] "..loaded_total.."/"..total_total.." systems loaded", NOTIFY_GENERIC, 5)
+			for _,name in pairs(list) do
+				notification.AddLegacy("[LITHIUM] "..name.." system loaded", NOTIFY_GENERIC, 5)
+			end
+		end)
+	end)
+end

@@ -1,5 +1,3 @@
-AddCSLuaFile()
-
 local print = print
 local unpack = unpack
 local collectgarbage = collectgarbage

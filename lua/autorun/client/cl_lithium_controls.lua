@@ -1,5 +1,5 @@
 hook.Add("PopulateToolMenu", "lithium_tools", function()
-    local gc, hm, ou, el
+    local gc, hm, ou, cv, el
     net.Receive("lithium_controls", function()
         local msg = net.ReadUInt(4)
         if msg == 0 then -- get bool
@@ -12,6 +12,9 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
             end
             if name == "lithium_enable_util_sv" then
                 return ou:SetValue(net.ReadBool())
+            end
+            if name == "lithium_enabled_convars_sv" then
+                return cv:SetValue(net.ReadBool())
             end
             if name == "lithium_enabled_sv" then
                 return el:SetValue(net.ReadBool())
@@ -64,6 +67,9 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
         panel:CheckBox("Hook Module", "lithium_enable_hookmodule_cl")
         panel:ControlHelp("Core system of Garry's Mod itself. Disabling this will make lithium NOT override the default hook system, which is about 40% slower.")
 
+        panel:CheckBox("Better Render", "lithium_enable_betterrender")
+        panel:ControlHelp("An enhancement to Garry's Mod rendering. This system makes it so that entities that are not realistically visible do not render at all, except only when you are dont't look at then and is in another world leaf")
+
         panel:CheckBox("Client Utilities", "lithium_enable_clientutil")
         panel:ControlHelp("A collection of random functions that are very often used in addons big and small.")
 
@@ -76,8 +82,11 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
         panel:Help("===============================")
         panel:Help("Auxiliary Systems")
         panel:ControlHelp("Lithium systems that give passive performance improvements.")
+
         panel:CheckBox("GPU Saver", "lithium_enable_gpusaver")
         panel:ControlHelp("Stops entire game from rendering to save GPU resources. This is not the same as pausing.")
+        panel:CheckBox("Optimised ConVars", "lithium_enable_convars_cl")
+        panel:ControlHelp("Runs a bunch of commands to try and optimise your game. This is pretty much what 90% of \"Optimising\" mods do - spray-and-pray with convars.")
     end)
     spawnmenu.AddToolMenuOption("Utilities", "Lithium", "lithium_systems_sv", "Systems: SERVER", "", "", function(panel)
         panel:Clear()
@@ -120,6 +129,21 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
         end
         ou:SetConVar(nil)
 
+        panel:Help("===============================")
+        panel:Help("Auxiliary Systems")
+        panel:ControlHelp("Lithium systems that give passive performance improvements.")
+
+        cv = panel:CheckBox("Optimised ConVars", "")
+        panel:ControlHelp("Runs a bunch of commands to try and optimise your game. This is pretty much what 90% of \"Optimising\" mods do - spray-and-pray with convars.")
+        function cv:OnChange(val)
+            net.Start("lithium_controls")
+                net.WriteUInt(1, 4)
+                net.WriteString("lithium_enable_convars_sv")
+                net.WriteBool(val)
+            net.SendToServer()
+        end
+        cv:SetConVar(nil)
+
         net.Start("lithium_controls")
             net.WriteUInt(0, 4)
             net.WriteString("lithium_enable_garbagecollector_sv")
@@ -131,6 +155,10 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
         net.Start("lithium_controls")
             net.WriteUInt(0, 4)
             net.WriteString("lithium_enable_util_sv")
+        net.SendToServer()
+        net.Start("lithium_controls")
+            net.WriteUInt(0, 4)
+            net.WriteString("lithium_enable_convars_sv")
         net.SendToServer()
     end)
 end)

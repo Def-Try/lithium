@@ -26,7 +26,6 @@ STENCIL_INCR = STENCILOPERATION_INCR
 STENCIL_DECR = STENCILOPERATION_DECR
 
 function render.ClearRenderTarget(rt, color)
-	if not rt or rt:IsErrorTexture() then error("Render target is invalid") end
 	color = color or color_black
 	render.PushRenderTarget(rt)
 		render.Clear(color.r or 0, color.g or 0, color.b or 0, color.a or 255)
