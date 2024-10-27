@@ -6,7 +6,9 @@ net.Receive("lithium_controls", function(_, ply)
 		if not ply:IsAdmin() then return end
 		local cv = net.ReadString()
 		if not string.StartsWith(cv, "lithium_") then return end
-		GetConVar(cv):SetBool(net.ReadBool())
+		local cvv = GetConVar(cv)
+		if not cvv then return end
+		cvv:SetBool(net.ReadBool())
 		return
 	end
 	if msg == 0 then -- get bool
@@ -15,7 +17,12 @@ net.Receive("lithium_controls", function(_, ply)
 		net.Start("lithium_controls")
             net.WriteUInt(0, 4)
             net.WriteString(name)
-            net.WriteBool(GetConVar(name):GetBool())
+            local cv = GetConVar(name)
+            if not cv then
+            	net.WriteBool(false)
+            else
+            	net.WriteBool(cv:GetBool())
+            end
         net.Send(ply)
 		return
 	end

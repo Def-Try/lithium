@@ -1,5 +1,30 @@
 AddCSLuaFile()
 
+require("lithium")
+
+concommand.Add("lithium_samplefps_"..(SERVER and "sv" or CLIENT and "cl" or "unk"), function(ply, _, args, _)
+	if not IsValid(ply) and SERVER then
+		lithium.log("Running on dedicated server. Measurements will be more accurate!")
+	end
+	local timings = {}
+	hook.Add("Tick", "LITHIUM_SampleFPS", function()
+		timings[#timings + 1] = FrameTime()
+	end)
+	local time = tonumber(args[1]) or 10
+	lithium.log("Sampling FPS for "..time.." seconds...")
+	timer.Simple(time, function()
+		hook.Remove("Tick", "LITHIUM_SampleFPS")
+		lithium.log("Sampling complete:")
+		local max, min, avg = 0, math.huge, 0
+		for _,time in pairs(timings) do
+			max, min, avg = math.max(max, time), math.min(min, time), (avg + time) / 2
+		end
+		--they are actually inverted. min = minimum time (more fps), max = maximum time (less fps)
+		lithium.log("    Min: "..math.Round(1 / max, 2))
+		lithium.log("    Max: "..math.Round(1 / min, 2))
+		lithium.log("    Avg: "..math.Round(1 / avg, 2))
+	end)
+end)
 
 local function send_dir(dir)
     dir = dir .. "/"
@@ -7,12 +32,7 @@ local function send_dir(dir)
 
     for k, v in ipairs(File) do
         if not string.EndsWith(v, ".lua") then continue end
-        local fileSide = string.lower(string.Left(v, 3))
-	    if fileSide == "sh_" then
-	        AddCSLuaFile(dir..v)
-	    elseif fileSide == "cl_" then
-	        AddCSLuaFile(dir..v)
-    	end
+	    AddCSLuaFile(dir..v)
     end
     
     for k, v in ipairs(Directory) do
@@ -47,13 +67,14 @@ end
 local enable_gc = mk_convar("enable_garbagecollector", "Enable Lithium Garbage Collector", true, true, 1)
 local enable_hook = mk_convar("enable_hookmodule", "Enable Lithium Hook Module", true, true, 1)
 local enable_convars = mk_convar("enable_convars", "Enable Lithium Optimised ConVars", true, true, 1)
+local enable_cacheevery = mk_convar("enable_cacheevery", "Enable Lithium Cache Everything", true, true, 1)
 local enable_clientutil = mk_convar("enable_clientutil", "Enable Lithium Client Utilities", true, false, 1)
 local enable_renderutil = mk_convar("enable_renderutil", "Enable Lithium Render Utilities", true, false, 1)
 local enable_betterrender = mk_convar("enable_betterrender", "Enable Lithium Better Render", true, false, 1)
 local enable_utils = mk_convar("enable_util", "Enable Lithium Utilities", true, true, 0)
+local enable_cleardefhooks = mk_convar("enable_cleardefhooks", "Enable Lithium Clear Default Hooks", true, true, 1)
 local enable_gpusaver = mk_convar("enable_gpusaver", "Enable Lithium GPU Out-Of-Focus Saver", true, false, 1)
-
-require("lithium")
+local enable_timeout = mk_convar("enable_timeout", "Enable Lithium GPU Out-Of-Focus Saver", true, false, 1)
 
 lithium.log("Core systems starting...")
 local loaded, total, list = 0, 0, {}
@@ -95,6 +116,16 @@ end
 load("Hook System", function()
 	local hook_table = hook.GetTable()
 	require("hook_lithium")
+
+	lithium.log("[HOOK] Self-Testing...")
+	local good = include("lithium/tests/hook.lua")
+	if not good then
+		lithium.log("[HOOK] SELF-TEST FAILURE! TRYING TO REVERT TO DEFAULT HOOK")
+		require("hook")
+		error("SELF-TEST FAILURE! Report error from console above to developer.")
+	end
+	lithium.log("[HOOK] Self-Test complete")
+
 	for event, event_table in pairs(hook_table) do
 		for name, func in pairs(event_table) do
 			hook.Add(event, name, func)
@@ -135,9 +166,12 @@ lithium.log("Auxiliary systems starting...")
 loaded, total = 0, 0
 if CLIENT then
 	load_include("gpusaver.lua", "GPU Out-Of-Focus Saver", not enable_gpusaver:GetBool())
+	load_include("timingout.lua", "Timeout Screen", not enable_timeout:GetBool())
 end
 
 load_include("convars.lua", "Optimised ConVars", not enable_convars:GetBool())
+load_include("extensions/caching.lua", "Caching everything", not enable_cacheevery:GetBool())
+load_include("killhooks.lua", "Clear default hooks", not enable_cleardefhooks:GetBool())
 
 loaded_total, total_total = loaded_total + loaded, total_total + total
 lithium.log("Auxiliary systems startup complete. Loaded: "..loaded.."/"..total)

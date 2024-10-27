@@ -10,7 +10,7 @@ local ErrorNoHaltWithStack = ErrorNoHaltWithStack
 local isnumber = isnumber
 local isstring = isstring
 local isbool = isbool
-
+local pcall = pcall
 local isfunction = isfunction
 local type = type
 local CompileString = CompileString
@@ -36,43 +36,25 @@ HOOK_MONITOR_LOW = 2
 
 module("hook")
 
-local table_was_accessed, table_access_copy = false, nil
-
 function GetTable() return hooks_backward end
-function GetULibTable()
-	table_was_accessed = true
-	table_access_copy = table.Copy(hooks)
-	return hooks
-end
+function GetULibTable() return hooks end
 function GetLithiumTable() return hooks_table end
 
-function ReorderHookTable(event)
-	local hook_table = {}
-	hooks_table[event] = hook_table
-	local hook_n = 0
-	hook_table[1] = -1
-	hook_table[2] = -1
-	for priority=-2,2 do
-		if priority == -1 then
-			hook_table[1] = hook_n - 1
-		end
-		if priority == 2 and hook_table[2] == -1 then
-			hook_table[2] = hook_n
-		end
-		if not hooks[event][priority] then continue end
-		for _,hook in pairs(hooks[event][priority]) do
-			hook_n = hook_n + 1
-			if not hook.isstring then
-				hook_table[#hook_table + 1] = 0
-				hook_table[#hook_table + 1] = hook.fn
-				hook_table[#hook_table + 1] = _
-			else
-				hook_table[#hook_table + 1] = hook.fn
-				hook_table[#hook_table + 1] = 0
-				hook_table[#hook_table + 1] = 0
-			end
-		end
-	end
+local empty = {}
+local function FindInsertIndex(event, priority)
+	if not hooks_table[event] then return 1 end
+    local amount = 0
+    for i=1,priority + 3,1 do
+    	amount = amount + (hooks_table[event][i] or 0)
+    end
+    local went = 0
+    for i=5,#hooks_table[event],3 do
+    	if went == amount then
+    		return i
+    	end
+    	went = went + 1
+    end
+    return #hooks_table[event] + 1
 end
 
 function Add(event, name, func, priority)
@@ -88,6 +70,8 @@ function Add(event, name, func, priority)
 		return ErrorNoHaltWithStack("bad argument #2 to 'Add' (string expected, got "..type(name)..")")
 	end
 
+	RemoveForce(event, name)
+
 	-- cursed
 	local hook_table = hooks[event] or {[-2]={}, [-1]={}, [0]={}, [1]={}, [2]={}}
 	hooks[event] = hook_table
@@ -98,7 +82,13 @@ function Add(event, name, func, priority)
 
 	hook_table[name] = {fn=func, isstring=isstring(name)}
 	hooks_backward[event][name] = func
-	ReorderHookTable(event)
+	hooks_table[event] = hooks_table[event] or {0, 0, 0, 0, 0}
+
+	local insert_pos = FindInsertIndex(event, priority) + 1
+	table.insert(hooks_table[event], insert_pos, func)
+	table.insert(hooks_table[event], insert_pos + 1, isstring(name))
+	table.insert(hooks_table[event], insert_pos + 2, name)
+	hooks_table[event][priority + 3] = hooks_table[event][priority + 3] + 1
 end
 
 function Remove(event, name)
@@ -109,62 +99,96 @@ function Remove(event, name)
 	if not isstring(name) and notValid then
 		return ErrorNoHaltWithStack("bad argument #2 to 'Remove' (string expected, got "..type(name)..")")
 	end
+	return RemoveForce(event, name)
+end
+
+function RemoveForce(event, name)
 	if not hooks_backward[event] then return end
 	for i=-2,2,1 do
 		hooks[event][i][name] = nil
 	end
 	hooks_backward[event][name] = nil
-	ReorderHookTable(event)
+
+	local pr_n2 = FindInsertIndex(event, -2) + 1
+	local pr_n1 = FindInsertIndex(event, -1) + 1
+	local pr_z0 = FindInsertIndex(event,  0) + 1
+	local pr_p1 = FindInsertIndex(event,  1) + 1
+
+	local hook_table = hooks_table[event]
+	if not hook_table then return end
+	local maxn = #hook_table
+	local done = false
+	while not done do
+		for i=6,maxn,3 do
+			local name2 = hook_table[i + 2]
+			if name2 == name then
+				done = true
+				table.remove(hook_table, i)
+				table.remove(hook_table, i)
+				table.remove(hook_table, i)
+				if     i >= pr_p1 then hook_table[5] = hook_table[5] - 1
+				elseif i >= pr_z0 then hook_table[4] = hook_table[4] - 1
+				elseif i >= pr_n1 then hook_table[3] = hook_table[3] - 1
+				elseif i >= pr_n2 then hook_table[2] = hook_table[2] - 1
+				else 				  hook_table[1] = hook_table[1] - 1
+				end
+				break
+			end
+		end
+		if done then
+			done = false
+			continue
+		end
+		break
+	end
 end
 
-function Call(event, gm, ...)
-	if table_was_accessed then
-		local hashes = {}
-		for event, h_table in pairs(hooks) do
-			hashes[event] = util.MD5(util.TableToJSON(h_table))
+local name
+function CallPartNoReturn(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	if hook_table[i + 1] then
+		hook_table[i](arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	else
+		name = hook_table[i + 2]
+		if not name then return end
+		if not name:IsValid() then
+			return RemoveForce(event, name)
 		end
-		for event, h_table in pairs(table_access_copy) do
-			if hashes[event] ~= util.MD5(util.TableToJSON(h_table)) then
-				ReorderHookTable(event)
-			end
-		end
-		table_was_accessed = false
-		table_access_copy = nil
+		hook_table[i](name, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	end
+end
+function CallPart(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	if hook_table[i + 1] then
+		return hook_table[i](arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	else
+		name = hook_table[i + 2]
+		if not name then return end
+		if not name:IsValid() then
+			return RemoveForce(event, name)
+		end
+		return hook_table[i](name, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	end
+end
+
+function Call(event, gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	--do return end
 	local hook_table = hooks_table[event]
 	if hook_table then
-		local n1, p2 = 3 + hook_table[1] * 3, 3 + hook_table[2] * 3
+		local n1, p2 = FindInsertIndex(event, -2), FindInsertIndex(event, 1)
 
-		local priority, a, b, c, d, e, f, name, h
+		local a, b, c, d, e, f
 		local maxn = #hook_table
-		for i=3,maxn,3 do
-			h = hook_table[i]
-			if h ~= 0 then
-				if i > n1 and i < p2 then
-					a, b, c, d, e, f = h(...)
-					if a ~= nil then return a, b, c, d, e, f end
-				else
-					h(...)
-				end
-			else
-				h = hook_table[i + 1]
-				name = hook_table[i + 2]
-				if not name:IsValid() then
-					for i=-2,2,1 do hooks[event][i][name] = nil end
-					hooks_backward[event][name] = nil
-					ReorderHookTable(event) -- i really don't like that, can we just shift everything down?
-					continue
-				end
-				if i > n1 and i < p2 then
-					a, b, c, d, e, f = h(name, ...)
-					if a ~= nil then return a, b, c, d, e, f end
-				else
-					h(name, ...)
-				end
-			end
+		for i=6,n1,3 do
+			CallPartNoReturn(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+		end
+		for i=n1+1,p2,3 do
+			a, b, c, d, e, f = CallPart(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+			if a ~= nil then return a, b, c, d, e, f end
+		end
+		for i=p2+1,maxn,3 do
+			CallPartNoReturn(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 		end
 	end
-	if gm and gm[event] then return gm[event](gm, ...) end
+	if gm and gm[event] then return gm[event](gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) end
 end
 
 local gm = nil

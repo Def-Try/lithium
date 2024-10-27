@@ -51,3 +51,7 @@ function Material(name, words)
 	MaterialCache[name][words or ""] = Material_old(name, words)
 	return Material(name, words)
 end
+
+function IsValid(data)
+	return data and data.IsValid and data:IsValid()
+end

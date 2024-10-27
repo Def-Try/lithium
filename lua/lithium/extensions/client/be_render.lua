@@ -1,5 +1,8 @@
 -- Better Entity Rendering: only render entities that are realistically visible
--- credit to noaccessl for insipiration. dm me at @googer_ in discord if you don't want your code there!
+-- credit to noaccessl. dm me at @googer_ in discord if you don't want your code there!
+
+require("lithium")
+lithium.log("Hi from noaccessl PerformantRender!")
 
 local VECTOR = FindMetaTable('Vector')
 local ENTITY = FindMetaTable('Entity')
@@ -107,7 +110,7 @@ local function CalculateRenderablesVisibility(view_origin, view_angle, fov)
 	for i=1, amount do
 		local entity = g_Renderables[i]
 		if not entity or not ENTITY_IsValid(entity) then
-			table.remove(g_Renderables, index)
+			table.remove(g_Renderables, i)
 			g_Renderables_Lookup[entity] = nil
 			break
 		end
@@ -118,7 +121,7 @@ local function CalculateRenderablesVisibility(view_origin, view_angle, fov)
 		local diagonal_sqr = entity_t.diagonal_sqr
 		local dist_sqr = VECTOR_DistToSqr(view_origin, origin)
 		local in_fog = false
-		if RENDER_GetFogMode() ~= 0 then
+		if false and RENDER_GetFogMode() ~= 0 then -- TODO: verify: causes issues?
 			local _, fog_end = RENDER_GetFogDistances()
 			if fog_end > 0 then
 				in_fog = dist_sqr > fog_end * fog_end + diagonal_sqr
@@ -158,7 +161,7 @@ local function CalculateRenderablesVisibility(view_origin, view_angle, fov)
 end
 
 hook.Add('PreRender', 'CalculateRenderablesVisibility', function()
-	if not VIEW_ORIGIN then return end
+	if MYSELF.tardis or not VIEW_ORIGIN then return end
 	CalculateRenderablesVisibility(VIEW_ORIGIN, VIEW_ANGLE, FOV_VIEW)
 end)
 

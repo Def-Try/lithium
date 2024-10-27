@@ -3,6 +3,8 @@ AddCSLuaFile()
 -- We don't want this to run in menu state, and render.GetAmbientLightColor doesn't exist in menu state
 if not render or not render.GetAmbientLightColor then return end
 
+include("optimised_draw.lua")
+
 --[[---------------------------------------------------------
   Short aliases for stencil constants
 -----------------------------------------------------------]]
@@ -56,9 +58,6 @@ local material_blurx			= Material("pp/blurx")
 local material_blury			= Material("pp/blury")
 local texture_bloom1			= render.GetBloomTex1()
 function render.BlurRenderTarget(rt, sizex, sizey, passes)
-	if not sizex or not sizey then error("SizeX or SizeY is not specified") end
-	if not passes or passes < 0 then error("Passes is not specified or is less than 0") end
-
 	if passes == 0 then return end
 	if sizex == 0 and sizey == 0 then return end
 
@@ -117,7 +116,6 @@ function render.DrawTextureToScreen(tex)
 end
 
 function render.DrawTextureToScreenRect(tex, x, y, w, h)
-	if not (isnumber(x) and isnumber(y) and isnumber(w) and isnumber(h)) then error("Either x, y, w, or h is invalid (not a number)") end
 	matFSB:SetFloat("$alpha", 1.0)
 	matFSB:SetTexture("$basetexture", tex)
 
@@ -134,6 +132,10 @@ function render.Model(tbl, ent)
 			cs_entity = ClientsideModel(tbl.model or "error.mdl", RENDERGROUP_OTHER)
 		end
 		ent = cs_entity
+		if ent:GetModelScale() ~= 1 then
+			ent:SetModelScale(1, 0.000001)
+			ent:Activate()
+		end
 	end
 
 	if not IsValid(ent) then return end
