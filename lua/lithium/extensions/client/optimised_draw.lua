@@ -4,6 +4,7 @@ require("lithium")
 -- dm me at @googer_ in discord if you don't want your code there!
 local function fix()
 	lithium.log("Hi from JetBoom's mouth and ear anim fixes!")
+
 	local SpeakFlexes = {
 		["jaw_drop"] = true,
 		["right_part"] = true,
@@ -14,7 +15,7 @@ local function fix()
 	local GESTURE_SLOT_VCD = GESTURE_SLOT_VCD
 	local ACT_GMOD_IN_CHAT = ACT_GMOD_IN_CHAT
 	local GAMEMODE = gmod.GetGamemode()
-	function GAMEMODE:MouthMoveAnimation( pl )
+	function GAMEMODE:MouthMoveAnimation(pl)
 		if pl:IsSpeaking() then
 			pl.m_bWasSpeaking = true
 
@@ -57,5 +58,4 @@ local function fix()
 		end
 	end
 end
-hook.Add("Initialize", "LITHIUM_FixMMAandGEA", fix)
-fix()
+timer.Simple(0, fix)

@@ -196,3 +196,4 @@ function Run(event, ...)
 	if not gm then gm = gmod and gmod.GetGamemode() or nil end
 	return Call(event, gm, ...)
 end
+

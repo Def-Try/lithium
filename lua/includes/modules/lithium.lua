@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 local print = print
 local unpack = unpack
 local collectgarbage = collectgarbage
@@ -32,7 +33,7 @@ function gc()
 	local end_time = SysTime()
 	local now = collectgarbage("count")
 	local cleared = round(then_ - now)
-	local took_time = round((end_time - start_time) * 1000, 2)
+	local took_time = round((end_time - start_time) * 1000)
 	log("Done. Collected "..cleared.."kb of garbage, took "..took_time.."ms")
 	log("Memory usage is now at "..round(now).."kb")
 end

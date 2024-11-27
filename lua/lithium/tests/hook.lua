@@ -28,6 +28,7 @@ local function RunTest()
 		lithium.log("[HOOK] [SELFTEST] Hook order test running")
 		local order = {}
 		for i = 1, 3 do
+			---@diagnostic disable-next-line: redundant-parameter
 			hook.Add(name, tostring(i), function() table.insert(order, tostring(i)) end, HOOK_NORMAL)
 		end
 		hook.Call(name, {})
@@ -110,11 +111,12 @@ local function RunTest()
 	do
 		lithium.log("[HOOK] [SELFTEST] Hook with varargs test running")
 		local args_received = false
+		---@diagnostic disable-next-line: cast-local-type
 		hook.Add(name, "varargs", function(...) args_received = {...} end)
 
 		hook.Call(name, {}, 1, 2, 3)
 
-		assert(#args_received == 3 and args_received[1] == 1 and args_received[2] == 2 and args_received[3] == 3, "Hooks should handle variable arguments correctly")
+		assert(args_received and #args_received == 3 and args_received[1] == 1 and args_received[2] == 2 and args_received[3] == 3, "Hooks should handle variable arguments correctly")
 
 		lithium.log("[HOOK] [SELFTEST] Hook with varargs test OK")
 		hook.Remove(name, "varargs")
@@ -134,6 +136,7 @@ local function RunTest()
 		lithium.log("[HOOK] [SELFTEST] High priority hook running before GM test running")
 		GM[name] = function() return "gm_not_called" end
 		local returnValue = nil
+		---@diagnostic disable-next-line: redundant-parameter
 		hook.Add(name, "PreHookReturn", function() return "pre_returned" end, HOOK_HIGH)
 
 		returnValue = hook.Call(name, GM)
@@ -147,7 +150,9 @@ local function RunTest()
 		lithium.log("[HOOK] [SELFTEST] Different priority hooks run test running")
 		local normal_hook_ran = false
 		local post_hook_ran = false
+		---@diagnostic disable-next-line: redundant-parameter
 		hook.Add(name, "normalhook", function() normal_hook_ran = true end, HOOK_NORMAL)
+		---@diagnostic disable-next-line: redundant-parameter
 		hook.Add(name, "posthook", function() post_hook_ran = true end, HOOK_LOW)
 
 		hook.Call(name, {})
@@ -162,7 +167,9 @@ local function RunTest()
 		lithium.log("[HOOK] [SELFTEST] Removing hook in call test running")
 		local hookran = false
 		local function removing_hook() hook.Remove(name, "dynamicHook") end
+		---@diagnostic disable-next-line: redundant-parameter
 		hook.Add(name, "removing_hook", removing_hook, HOOK_HIGH)
+		---@diagnostic disable-next-line: redundant-parameter
 		hook.Add(name, "dynamicHook", function() hookran = true end, HOOK_NORMAL)
 
 		hook.Call(name, {})

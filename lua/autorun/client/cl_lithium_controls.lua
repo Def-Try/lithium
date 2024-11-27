@@ -1,3 +1,4 @@
+---@diagnostic disable: inject-field
 hook.Add("PopulateToolMenu", "lithium_tools", function()
     local gc, hm, ou, cv, el, ce, cd
     net.Receive("lithium_controls", function()
@@ -29,6 +30,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
     end)
     spawnmenu.AddToolMenuOption("Utilities", "Lithium", "lithium_general", "General", "", "", function(panel)
         panel:Clear()
+        ---@cast panel ControlPanel
         panel:Help("This tab controls general lithium settings.")
 
         panel:Help("===============================")
@@ -42,6 +44,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         el:SetConVar(nil)
         net.Start("lithium_controls")
             net.WriteUInt(0, 4)
@@ -61,6 +64,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
     end)
     spawnmenu.AddToolMenuOption("Utilities", "Lithium", "lithium_systems_cl", "Systems: CLIENT", "", "", function(panel)
         panel:Clear()
+        ---@cast panel ControlPanel
         panel:Help("This tab controls what systems are enabled on the client. Changes will not come into effect until restart.")
 
         panel:Help("===============================")
@@ -85,6 +89,9 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
         panel:CheckBox("Other Utilities", "lithium_enable_util_cl")
         panel:ControlHelp("A collection of random functions that are very often used in addons big and small.")
 
+        panel:CheckBox("FPS maxxing", "lithium_enable_fpsmaxxing")
+        panel:ControlHelp("Last resort at optimisation, only use if you are ready for shit breaking horribly. implements a custom render pipeline in lua, breaking everything that's done in C++, including viewmodels, hud, transparency, textures, color, bsp optimisations, skybox, sun, etc...")
+
         panel:Help("===============================")
         panel:Help("Auxiliary Systems")
         panel:ControlHelp("Lithium systems that give passive performance improvements.")
@@ -102,6 +109,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
     end)
     spawnmenu.AddToolMenuOption("Utilities", "Lithium", "lithium_systems_sv", "Systems: SERVER", "", "", function(panel)
         panel:Clear()
+        ---@cast panel ControlPanel
         panel:Help("This tab controls what systems are enabled on the server. Changes will not come into effect until restart.")
 
         panel:Help("===============================")
@@ -117,6 +125,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         gc:SetConVar(nil)
 
         hm = panel:CheckBox("Hook Module", "")
@@ -128,6 +137,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         hm:SetConVar(nil)
 
         ou = panel:CheckBox("Other Utilities", "")
@@ -139,6 +149,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         ou:SetConVar(nil)
 
         panel:Help("===============================")
@@ -155,6 +166,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         ce:SetConVar(nil)
 
 
@@ -167,6 +179,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         cd:SetConVar(nil)
 
         cv = panel:CheckBox("Optimised ConVars", "")
@@ -178,6 +191,7 @@ hook.Add("PopulateToolMenu", "lithium_tools", function()
                 net.WriteBool(val)
             net.SendToServer()
         end
+        ---@diagnostic disable-next-line: param-type-mismatch
         cv:SetConVar(nil)
 
         net.Start("lithium_controls")
