@@ -41,15 +41,20 @@ end
 
 _G.Material_old = _G.Material_old or Material
 function Material(name, words)
-	lithium.debug("[UTIL] Material: "..tostring(name))
-	if MaterialCache[name] and MaterialCache[name][words or ""] then
-		return MaterialCache[name][words or ""]
+	lithium.debug(string.format("[UTIL] Material: %q %q", name, words))
+	if name == "" and words == nil then
+		return Material_old(name, words)
+	end
+	local r_words = words
+	if words == nil then words = false end
+	if MaterialCache[name] and MaterialCache[name][words] then
+		return MaterialCache[name][words]
 	end
 	if not MaterialCache[name] then
 		MaterialCache[name] = {}
 	end
-	MaterialCache[name][words or ""] = Material_old(name, words)
-	return Material(name, words)
+	MaterialCache[name][words] = Material_old(name, r_words)
+	return Material(name, r_words)
 end
 
 function IsValid(data)

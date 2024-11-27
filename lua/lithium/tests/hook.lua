@@ -229,8 +229,6 @@ local function RunTest()
 		local called = 0
 		local entity = {
 			IsValid = function()
-				--print("called")
-				--debug.Trace()
 				called = called + 1
 				if called <= 2 then
 					return true

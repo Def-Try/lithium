@@ -10,23 +10,12 @@ local ErrorNoHaltWithStack = ErrorNoHaltWithStack
 local isnumber = isnumber
 local isstring = isstring
 local isbool = isbool
-local pcall = pcall
 local isfunction = isfunction
 local type = type
-local CompileString = CompileString
-local pairs = pairs
-local print = print
-local PrintTable = PrintTable
-local unpack = unpack
 local gmod = gmod
-local getfenv = getfenv
-local setfenv = setfenv
-local string = string
-local error = error
-local tostring = tostring
 local table = table
-local istable = istable
-local util = util
+local lithium = lithium
+local string = string
 
 HOOK_MONITOR_HIGH = -2
 HOOK_HIGH = -1
@@ -58,6 +47,7 @@ local function FindInsertIndex(event, priority)
 end
 
 function Add(event, name, func, priority)
+	lithium.debug(string.format("hook.Add(%q, %q, function, %s)", event, name, priority))
 	if not priority or not isnumber(priority) then priority = 0 end
 	if not isstring(event) then
 		return ErrorNoHaltWithStack("bad argument #1 to 'Add' (string expected, got "..type(event)..")")
@@ -92,6 +82,7 @@ function Add(event, name, func, priority)
 end
 
 function Remove(event, name)
+	lithium.debug(string.format("hook.Remove(%q, %q)", event, name))
 	if not isstring(event) then
 		return ErrorNoHaltWithStack("bad argument #1 to 'Remove' (string expected, got "..type(event)..")")
 	end
@@ -170,6 +161,7 @@ function CallPart(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6
 end
 
 function Call(event, gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	lithium.debug(string.format("hook.Call(%q)", event))
 	--do return end
 	local hook_table = hooks_table[event]
 	if hook_table then
