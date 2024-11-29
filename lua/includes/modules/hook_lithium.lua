@@ -16,6 +16,7 @@ local gmod = gmod
 local table = table
 local lithium = lithium
 local string = string
+local tostring = tostring
 
 HOOK_MONITOR_HIGH = -2
 HOOK_HIGH = -1
@@ -47,7 +48,7 @@ local function FindInsertIndex(event, priority)
 end
 
 function Add(event, name, func, priority)
-	lithium.debug(string.format("hook.Add(%q, %q, function, %s)", event, name, priority))
+	lithium.debug(string.format("hook.Add(%q, %q, function, %s)", tostring(event), tostring(name), tostring(priority)))
 	if not priority or not isnumber(priority) then priority = 0 end
 	if not isstring(event) then
 		return ErrorNoHaltWithStack("bad argument #1 to 'Add' (string expected, got "..type(event)..")")
@@ -82,7 +83,7 @@ function Add(event, name, func, priority)
 end
 
 function Remove(event, name)
-	lithium.debug(string.format("hook.Remove(%q, %q)", event, name))
+	lithium.debug(string.format("hook.Remove(%q, %q)", tostring(event), tostring(name)))
 	if not isstring(event) then
 		return ErrorNoHaltWithStack("bad argument #1 to 'Remove' (string expected, got "..type(event)..")")
 	end
@@ -121,7 +122,7 @@ function RemoveForce(event, name)
 				elseif i >= pr_z0 then hook_table[4] = hook_table[4] - 1
 				elseif i >= pr_n1 then hook_table[3] = hook_table[3] - 1
 				elseif i >= pr_n2 then hook_table[2] = hook_table[2] - 1
-				else 				  hook_table[1] = hook_table[1] - 1
+				else 				   hook_table[1] = hook_table[1] - 1
 				end
 				break
 			end
@@ -161,7 +162,7 @@ function CallPart(hook_table, event, i, arg0, arg1, arg2, arg3, arg4, arg5, arg6
 end
 
 function Call(event, gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-	lithium.debug(string.format("hook.Call(%q)", event))
+	lithium.debug(string.format("hook.Call(%q)", tostring(event)))
 	--do return end
 	local hook_table = hooks_table[event]
 	if hook_table then
@@ -184,8 +185,8 @@ function Call(event, gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, a
 end
 
 local gm = nil
-function Run(event, ...)
+function Run(event, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	if not gm then gm = gmod and gmod.GetGamemode() or nil end
-	return Call(event, gm, ...)
+	return Call(event, gm, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 end
 
