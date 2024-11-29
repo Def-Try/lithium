@@ -228,7 +228,7 @@ end
 
 -- EPIC NEW GMOD RENDER PIPELINE 
 local drawing = false
-hook.Add("RenderScene", "map", function(eye_pos, eye_angles, cam_fov) 
+hook.Add("RenderScene", "LITHIUM_LastResort", function(eye_pos, eye_angles, cam_fov) 
 	if drawing then return end
 	if not _G.LITHIUM_MAPMESHES then
 		_G.LITHIUM_MAPMESHES, _G.LITHIUM_MAPMINMAXS = generate_map_meshes()
