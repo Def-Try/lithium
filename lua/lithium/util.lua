@@ -3,10 +3,10 @@ AddCSLuaFile()
 local ConVarCache = {}
 local MaterialCache = {}
 
-_G.CreateConVar_old = _G.CreateConVar_old or CreateConVar
+_G.LITHIUM_CreateConVar_old = _G.LITHIUM_CreateConVar_old or CreateConVar
 function CreateConVar(name, default, iFlags, helptext, min, max)
 	lithium.debug("[UTIL] ConVar Create: "..tostring(name))
-	local convar = CreateConVar_old(name, default, iFlags, helptext, min, max)
+	local convar = LITHIUM_CreateConVar_old(name, default, iFlags, helptext, min, max)
 	ConVarCache[name] = convar
 	return convar
 end
@@ -39,11 +39,11 @@ function GetConVarString(name)
 	return convar and convar:GetString() or ""
 end
 
-_G.Material_old = _G.Material_old or Material
+_G.LITHIUM_Material_old = _G.LITHIUM_Material_old or Material
 function Material(name, words)
 	lithium.debug(string.format("[UTIL] Material: %q %q", name, words))
-	if name == "" and words == nil then
-		return Material_old(name, words)
+	if name == "" and words == nil then -- the fuck?
+		return LITHIUM_Material_old(name, words)
 	end
 	local r_words = words
 	if words == nil then words = false end
@@ -53,7 +53,7 @@ function Material(name, words)
 	if not MaterialCache[name] then
 		MaterialCache[name] = {}
 	end
-	MaterialCache[name][words] = Material_old(name, r_words)
+	MaterialCache[name][words] = LITHIUM_Material_old(name, r_words)
 	return Material(name, r_words)
 end
 

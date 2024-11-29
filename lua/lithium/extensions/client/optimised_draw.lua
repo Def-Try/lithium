@@ -2,7 +2,7 @@ require("lithium")
 
 -- https://github.com/JetBoom/zombiesurvival/blob/master/gamemodes/zombiesurvival/gamemode/perf/shared/buffthefps.lua
 -- dm me at @googer_ in discord if you don't want your code there!
-local function fix()
+timer.Simple(0, function()
 	lithium.log("Hi from JetBoom's mouth and ear anim fixes!")
 
 	local SpeakFlexes = {
@@ -57,5 +57,4 @@ local function fix()
 			pl:AnimSetGestureWeight(GESTURE_SLOT_VCD, pl.ChatGestureWeight)
 		end
 	end
-end
-timer.Simple(0, fix)
+end)

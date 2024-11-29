@@ -182,6 +182,7 @@ hook.Add('entity_killed', 'FixVisibleDeadNPCs', function(data)
 	end
 	ENTITY_SetNoDraw(npc, false)
 	ENTITY_RemoveEFlags(npc, EFL_NO_THINK_FUNCTION)
+	---@diagnostic disable-next-line: inject-field
 	npc.m_bRenderable = nil
 	for index, entity in ipairs(g_Renderables) do
 		if entity == npc then

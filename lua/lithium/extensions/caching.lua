@@ -23,7 +23,12 @@ hook.Add("EntityRemoved", "LITHIUM_CacheEntity", function(ent, fullupdate)
 
 	_G.LITHIUM_entlist[ent:EntIndex()] = nil
 end)
-
+_G.LITHIUM_OldEntity = _G.LITHIUM_OldEntity or Entity
 function Entity(entindex)
-	return _G.LITHIUM_entlist[entindex] or _G.LITHIUM_entlist[tonumber(entindex)] or NULL
+	local ent = _G.LITHIUM_entlist[entindex] or _G.LITHIUM_entlist[tonumber(entindex)] or NULL
+	if not ent then
+		ent = _G.LITHIUM_OldEntity(entindex)
+		if ent and ent:IsValid() then _G.LITHIUM_entlist[entindex] = ent end
+	end
+	return ent
 end

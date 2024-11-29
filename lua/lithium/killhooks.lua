@@ -27,5 +27,4 @@ local function kill()
 	end
 end
 
-hook.Add("Initialize", "LITHIUM_KillHooks", kill)
-kill()
+timer.Simple(0, kill)

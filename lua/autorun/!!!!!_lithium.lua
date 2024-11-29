@@ -1,5 +1,10 @@
 AddCSLuaFile()
 
+_G.LITHIUM_LastAutoReload = _G.LITHIUM_LastAutoReload or -1
+
+if SysTime() - _G.LITHIUM_LastAutoReload < 0.1 then return end
+_G.LITHIUM_LastAutoReload = SysTime()
+
 require("lithium")
 
 concommand.Add("lithium_samplefps_"..(SERVER and "sv" or CLIENT and "cl" or "unk"), function(ply, _, args, _)
@@ -85,7 +90,15 @@ local loaded, total, list = 0, 0, {}
 if enable_gc and enable_gc:GetBool() then
 	lithium.log("Starting: Garbage Collector")
 	timer.Create("LITHIUM_garbage_collector", 5 * 60, 0, function()
-		lithium.gc()
+		local then_ = collectgarbage("count")
+		local start_time = SysTime()
+		collectgarbage("collect")
+		collectgarbage("step", 192)
+		local end_time = SysTime()
+		local now = collectgarbage("count")
+		local cleared = math.floor(then_ - now)
+		local took_time = math.floor((end_time - start_time) * 1000)
+		log("Collected "..cleared.."kb of garbage, took "..took_time.."ms. Memory usage is now at "..math.floor(now).."kb")	
 	end)
 	loaded = loaded + 1
 end
@@ -181,13 +194,10 @@ loaded_total, total_total = loaded_total + loaded, total_total + total
 lithium.log("Auxiliary systems startup complete. Loaded: "..loaded.."/"..total)
 
 if CLIENT then
-	hook.Add("InitPostEntity", "LITHIUM_Notify", function()
-		notification.AddLegacy("[LITHIUM] Lithium is installed!", NOTIFY_HINT, 5)
-		timer.Simple(5, function()
-			notification.AddLegacy("[LITHIUM] "..loaded_total.."/"..total_total.." systems loaded", NOTIFY_GENERIC, 5)
-			for _,name in pairs(list) do
-				notification.AddLegacy("[LITHIUM] "..name.." system loaded", NOTIFY_GENERIC, 5)
-			end
-		end)
+	timer.Simple(0, function()
+		chat.AddText(Color(85, 162, 4), "[LITHIUM] ", color_white, loaded_total.."/"..total_total.." systems loaded:")
+		for _,name in pairs(list) do
+			chat.AddText(Color(85, 162, 4), "[LITHIUM] ", color_white, "  - "..name)
+		end
 	end)
 end
