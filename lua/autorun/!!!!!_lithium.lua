@@ -66,8 +66,8 @@ local enable_convars = mk_convar("enable_convars", "Enable Lithium Optimised Con
 local enable_cacheevery = mk_convar("enable_cacheevery", "Enable Lithium Cache Everything", true, true, 1)
 local enable_clientutil = mk_convar("enable_clientutil", "Enable Lithium Client Utilities", true, false, 1)
 local enable_renderutil = mk_convar("enable_renderutil", "Enable Lithium Render Utilities", true, false, 1)
-local enable_betterrender = mk_convar("enable_betterrender", "Enable Lithium Better Render", true, false, 0)
-local enable_utils = mk_convar("enable_util", "Enable Lithium Utilities", true, true, 0)
+local enable_betterrender = mk_convar("enable_betterrender", "Enable Lithium Better Render", true, false, 1)
+local enable_utils = mk_convar("enable_util", "Enable Lithium Utilities", true, true, 1)
 local enable_cleardefhooks = mk_convar("enable_cleardefhooks", "Enable Lithium Clear Default Hooks", true, true, 1)
 local enable_gpusaver = mk_convar("enable_gpusaver", "Enable Lithium GPU Out-Of-Focus Saver", true, false, 1)
 local enable_timeout = mk_convar("enable_timeout", "Enable Lithium GPU Out-Of-Focus Saver", true, false, 1)
@@ -171,7 +171,9 @@ if CLIENT then
 	load_include("extensions/client/render.lua", "Render functions", not enable_renderutil or not enable_renderutil:GetBool())
 	load_include("extensions/client/be_render.lua", "Better Render", not enable_betterrender or not enable_betterrender:GetBool())
 	load_include("util/client.lua", "Client functions", not enable_clientutil or not enable_clientutil:GetBool())
+	local _loaded = loaded
 	load_include("extensions/lastresort.lua", "The Last Resort", not enable_fpsmaxxing or not enable_fpsmaxxing:GetBool())
+	if _loaded == loaded then total = total - 1 end -- i will NOT consider last resort a system until it's loaded.
 end
 
 load_include("util.lua", "Util functions", not enable_utils or not enable_utils:GetBool())
@@ -186,7 +188,9 @@ if CLIENT then
 	load_include("timingout.lua", "Timeout Screen", not enable_timeout or not enable_timeout:GetBool())
 end
 
+local _loaded = loaded
 load_include("convars.lua", "Optimised ConVars", not enable_convars or not enable_convars:GetBool())
+if _loaded == loaded then total = total - 1 end -- i will NOT consider this a system until it's loaded.
 load_include("extensions/caching.lua", "Caching everything", not enable_cacheevery or not enable_cacheevery:GetBool())
 load_include("killhooks.lua", "Clear default hooks", not enable_cleardefhooks or not enable_cleardefhooks:GetBool())
 
