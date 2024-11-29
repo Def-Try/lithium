@@ -98,7 +98,7 @@ if enable_gc and enable_gc:GetBool() then
 		local now = collectgarbage("count")
 		local cleared = math.floor(then_ - now)
 		local took_time = math.floor((end_time - start_time) * 1000)
-		log("Collected "..cleared.."kb of garbage, took "..took_time.."ms. Memory usage is now at "..math.floor(now).."kb")	
+		lithium.log("Collected "..cleared.."kb of garbage, took "..took_time.."ms. Memory usage is now at "..math.floor(now).."kb")	
 	end)
 	loaded = loaded + 1
 end

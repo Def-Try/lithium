@@ -245,8 +245,8 @@ hook.Add("RenderScene", "LITHIUM_LastResort", function(eye_pos, eye_angles, cam_
 	if not detoured_localplayer then
 		detoured_localplayer = true
 		local lp = LocalPlayer()
-		function lp:EyeAngles() return eyeang end
-		function lp:EyePos() return eyepos end
+		function lp:EyeAngles() return EyeAngles() end
+		function lp:EyePos() return EyePos() end
 	end
 
 	drawing = true
