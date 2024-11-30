@@ -125,10 +125,8 @@ end
 
 local cs_entity = nil
 function render.Model(tbl, ent)
-	local inent = ent
-
 	if not IsValid(ent) then
-		if not IsValid(cs_entity) then
+		if not cs_entity or not IsValid(cs_entity) then
 			cs_entity = ClientsideModel(tbl.model or "error.mdl", RENDERGROUP_OTHER)
 		end
 		ent = cs_entity
