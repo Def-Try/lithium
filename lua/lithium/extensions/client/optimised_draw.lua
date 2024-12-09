@@ -105,7 +105,7 @@ function draw.GetFontHeight(font)
 end
 
 function draw.SimpleText(text, font, x, y, color, xalign, yalign)
-	surface_SetFont(font)
+	surface_SetFont(font or "DermaDefault")
 
 	if xalign == TEXT_ALIGN_CENTER then
 		local w, _ = surface_GetTextSize( text )
