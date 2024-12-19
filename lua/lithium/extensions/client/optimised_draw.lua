@@ -88,6 +88,8 @@ local math_ceil = math.ceil
 
 local Tex_Corner8 = surface.GetTextureID("gui/corner8")
 local Tex_Corner16 = surface.GetTextureID("gui/corner16")
+local Tex_Corner32 = surface.GetTextureID("gui/corner32")
+local Tex_Corner64 = surface.GetTextureID("gui/corner64")
 local Tex_white = surface.GetTextureID("vgui/white")
 
 -- Just an FYI that this is around 450 times faster than using surface.GetTextSize when cached.
@@ -108,10 +110,10 @@ function draw.SimpleText(text, font, x, y, color, xalign, yalign)
 	surface_SetFont(font or "DermaDefault")
 
 	if xalign == TEXT_ALIGN_CENTER then
-		local w, _ = surface_GetTextSize( text )
+		local w, _ = surface_GetTextSize(text)
 		x = x - w / 2
 	elseif xalign == TEXT_ALIGN_RIGHT then
-		local w, _ = surface_GetTextSize( text )
+		local w, _ = surface_GetTextSize(text)
 		x = x - w
 	end
 
@@ -137,7 +139,7 @@ function draw.DrawText(text, font, x, y, color, xalign)
 	local curY = y
 	local curString = ""
 
-	surface_SetFont(font)
+	surface_SetFont(font or "DermaDefault")
 	local lineHeight = draw.GetFontHeight(font)
 
 	for i=1, #text do
@@ -164,20 +166,6 @@ function draw.DrawText(text, font, x, y, color, xalign)
 	if #curString > 0 then
 		draw.SimpleText(curString, font, curX, curY, color, xalign)
 	end
-end
-
-function draw.RoundedBox(bordersize, x, y, w, h, color)
-	surface_SetDrawColor(color)
-
-	surface_DrawRect(x + bordersize, y, w - bordersize * 2, h)
-	surface_DrawRect(x, y + bordersize, bordersize, h - bordersize * 2)
-	surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - bordersize * 2)
-
-	surface_SetTexture(bordersize > 8 and Tex_Corner16 or Tex_Corner8)
-	surface_DrawTexturedRectRotated( x + bordersize/2 , y + bordersize/2, bordersize, bordersize, 0 )
-	surface_DrawTexturedRectRotated( x + w - bordersize/2 , y + bordersize/2, bordersize, bordersize, 270 )
-	surface_DrawTexturedRectRotated( x + bordersize/2 , y + h -bordersize/2, bordersize, bordersize, 90 )
-	surface_DrawTexturedRectRotated( x + w - bordersize/2 , y + h - bordersize/2, bordersize, bordersize, 180 )
 end
 
 function draw.Text(tab)
@@ -257,37 +245,54 @@ end
 
 function draw.RoundedBoxEx(bordersize, x, y, w, h, color, a, b, c, d)
 	surface_SetDrawColor(color)
+	bordersize = math.max(bordersize, 0)
+
+	if bordersize <= 0 then
+		bordersize = 0
+	elseif bordersize <= 8 then
+		surface_SetTexture(Tex_Corner8)
+	elseif bordersize <= 16 then
+		surface_SetTexture(Tex_Corner16)
+	elseif bordersize <= 32 then
+		surface_SetTexture(Tex_Corner32)
+	else
+		surface_SetTexture(Tex_Corner64)
+	end
 
 	-- Draw as much of the rect as we can without textures
 	surface_DrawRect(x + bordersize, y, w - bordersize * 2, h)
 	surface_DrawRect(x, y + bordersize, bordersize, h - bordersize * 2)
 	surface_DrawRect(x + w - bordersize, y + bordersize, bordersize, h - bordersize * 2)
 
-	surface_SetTexture(bordersize > 8 and Tex_Corner16 or Tex_Corner8)
-
+	if bordersize == 0 then return end
+	
 	if a then
-		surface_DrawTexturedRectRotated(x + bordersize/2 , y + bordersize/2, bordersize, bordersize, 0)
+		surface_DrawTexturedRectRotated(x + bordersize/2, y + bordersize/2, bordersize, bordersize, 0)
 	else
 		surface_DrawRect(x, y, bordersize, bordersize)
 	end
 
 	if b then
-		surface_DrawTexturedRectRotated(x + w - bordersize/2 , y + bordersize/2, bordersize, bordersize, 270)
+		surface_DrawTexturedRectRotated(x + w - bordersize/2, y + bordersize/2, bordersize, bordersize, 270)
 	else
 		surface_DrawRect(x + w - bordersize, y, bordersize, bordersize)
 	end
 
 	if c then
-		surface_DrawTexturedRectRotated(x + bordersize/2 , y + h -bordersize/2, bordersize, bordersize, 90)
+		surface_DrawTexturedRectRotated(x + bordersize/2, y + h - bordersize/2, bordersize, bordersize, 90)
 	else
 		surface_DrawRect(x, y + h - bordersize, bordersize, bordersize)
 	end
 
 	if d then
-		surface_DrawTexturedRectRotated(x + w - bordersize/2 , y + h - bordersize/2, bordersize, bordersize, 180)
+		surface_DrawTexturedRectRotated(x + w - bordersize/2, y + h - bordersize/2, bordersize, bordersize, 180)
 	else
 		surface_DrawRect(x + w - bordersize, y + h - bordersize, bordersize, bordersize)
 	end
+end
+
+function draw.RoundedBox(bordersize, x, y, w, h, color)
+	draw.RoundedBoxEx(bordersize, x, y, w, h, color, true, true, true, true)
 end
 
 function draw.SimpleTextOutlined(text, font, x, y, colour, xalign, yalign, outlinewidth, outlinecolor)
