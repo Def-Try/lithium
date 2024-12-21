@@ -139,8 +139,7 @@ function draw.DrawText(text, font, x, y, color, xalign)
 	local curY = y
 	local curString = ""
 
-	surface_SetFont(font or "DermaDefault")
-	local lineHeight = draw.GetFontHeight(font)
+	local lineHeight = draw.GetFontHeight(font or "DermaDefault")
 
 	for i=1, #text do
 		local ch = string_sub(text, i, i)
@@ -149,7 +148,7 @@ function draw.DrawText(text, font, x, y, color, xalign)
 				draw.SimpleText(curString, font, curX, curY, color, xalign)
 			end
 
-			curY = curY + lineHeight / 2
+			curY = curY + lineHeight -- / 2
 			curX = x
 			curString = ""
 		elseif ch == "\t" then
