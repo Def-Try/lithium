@@ -138,6 +138,7 @@ function draw.DrawText(text, font, x, y, color, xalign)
 	local curX = x
 	local curY = y
 	local curString = ""
+	text = tostring(text)
 
 	local lineHeight = draw.GetFontHeight(font or "DermaDefault")
 
@@ -168,8 +169,8 @@ function draw.DrawText(text, font, x, y, color, xalign)
 end
 
 function draw.Text(tab)
-	local text = tab.text
-	local font = tab.font or "DermaDefault"
+	local text = tostring(tab.text or "")
+	local font = tostring(tab.font or "DermaDefault")
 	local x = tab.pos[1] or 0
 	local y = tab.pos[2] or 0
 	local xalign = tab.xalign
