@@ -1,91 +1,30 @@
-AddCSLuaFile()
-
--- We don't want this to run in menu state, and render.GetAmbientLightColor doesn't exist in menu state
-if not render or not render.GetAmbientLightColor then return end
-
 include("optimised_draw.lua")
 
---[[---------------------------------------------------------
-  Short aliases for stencil constants
------------------------------------------------------------]]
-
-STENCIL_NEVER = STENCILCOMPARISONFUNCTION_NEVER
-STENCIL_LESS = STENCILCOMPARISONFUNCTION_LESS
-STENCIL_EQUAL = STENCILCOMPARISONFUNCTION_EQUAL
-STENCIL_LESSEQUAL = STENCILCOMPARISONFUNCTION_LESSEQUAL
-STENCIL_GREATER = STENCILCOMPARISONFUNCTION_GREATER
-STENCIL_NOTEQUAL = STENCILCOMPARISONFUNCTION_NOTEQUAL
-STENCIL_GREATEREQUAL = STENCILCOMPARISONFUNCTION_GREATEREQUAL
-STENCIL_ALWAYS = STENCILCOMPARISONFUNCTION_ALWAYS
-
-STENCIL_KEEP = STENCILOPERATION_KEEP
-STENCIL_ZERO = STENCILOPERATION_ZERO
-STENCIL_REPLACE = STENCILOPERATION_REPLACE
-STENCIL_INCRSAT = STENCILOPERATION_INCRSAT
-STENCIL_DECRSAT = STENCILOPERATION_DECRSAT
-STENCIL_INVERT = STENCILOPERATION_INVERT
-STENCIL_INCR = STENCILOPERATION_INCR
-STENCIL_DECR = STENCILOPERATION_DECR
-
-function render.ClearRenderTarget(rt, color)
-	color = color or color_black
-	render.PushRenderTarget(rt)
-		render.Clear(color.r or 0, color.g or 0, color.b or 0, color.a or 255)
-	render.PopRenderTarget()
-end
-
-function render.SupportsHDR()
-	return render.GetDXLevel() >= 80
-end
-
-function render.CopyTexture(from, to)
-	render.PushRenderTarget(from)
-		render.CopyRenderTargetToTexture(to)
-	render.PopRenderTarget()
-end
-
-local color_material		 = Material("color")
-local color_ignorez_material = Material("color_ignorez")
-
-function render.SetColorMaterial()
-	render.SetMaterial(color_material)
-end
-function render.SetColorMaterialIgnoreZ()
-	render.SetMaterial(color_ignorez_material)
-end
-
-local material_blurx			= Material("pp/blurx")
-local material_blury			= Material("pp/blury")
-local texture_bloom1			= render.GetBloomTex1()
-function render.BlurRenderTarget(rt, sizex, sizey, passes)
-	if passes == 0 then return end
-	if sizex == 0 and sizey == 0 then return end
-
-	material_blurx:SetTexture("$basetexture", rt)
-	material_blury:SetTexture("$basetexture", texture_bloom1)
-	material_blurx:SetFloat("$size", sizex)
-	material_blury:SetFloat("$size", sizey)
-	for i=0, passes do
-		render.SetRenderTarget(texture_bloom1)
-		render.SetMaterial(material_blurx)
-		render.DrawScreenQuad()
-
-		render.SetRenderTarget(rt)
-		render.SetMaterial(material_blury)
-		render.DrawScreenQuad()
-	end
-end
+local isnumber = isnumber
+local cam_Start = cam.Start
+local ClientsideModel = ClientsideModel
+local ENTITY = FindMetaTable("Entity")
+local ENTITY_IsValid = ENTITY.IsValid
+local ENTITY_GetModelScale = ENTITY.GetModelScale
+local ENTITY_SetModelScale = ENTITY.SetModelScale
+local ENTITY_Activate = ENTITY.Activate
+local ENTITY_GetBoneCount = ENTITY.GetBoneCount
+local ENTITY_ManipulateBoneScane = ENTITY.ManipulateBoneScale
+local ENTITY_SetModel = ENTITY.SetModel
+local ENTITY_SetNoDraw = ENTITY.SetNoDraw
+local ENTITY_SetPos = ENTITY.SetPos
+local ENTITY_SetAngles = ENTITY.SetAngles
+local ENTITY_DrawModel = ENTITY.DrawModel
 
 local cam_start2d = {type = '2D'}
 local cam_start3d = {type = '3D'}
 
 function cam.Start2D()
-	cam.Start(cam_start2d)
+	cam_Start(cam_start2d)
 end
 
 function cam.Start3D(pos, ang, fov, x, y, w, h, znear, zfar)
 	local tab = cam_start3d
-	local isnumber = isnumber
 
 	tab.origin = pos
 	tab.angles = ang
@@ -103,45 +42,32 @@ function cam.Start3D(pos, ang, fov, x, y, w, h, znear, zfar)
 		tab.znear, tab.zfar = nil, nil
 	end
 
-	return cam.Start(tab)
-end
-
-local matFSB = Material("pp/motionblur")
-function render.DrawTextureToScreen(tex)
-	matFSB:SetFloat("$alpha", 1.0)
-	matFSB:SetTexture("$basetexture", tex)
-
-	render.SetMaterial(matFSB)
-	render.DrawScreenQuad()
-end
-
-function render.DrawTextureToScreenRect(tex, x, y, w, h)
-	matFSB:SetFloat("$alpha", 1.0)
-	matFSB:SetTexture("$basetexture", tex)
-
-	render.SetMaterial(matFSB)
-	render.DrawScreenQuadEx(x, y, w, h)
+	return cam_Start(tab)
 end
 
 local cs_entity = nil
 function render.Model(tbl, ent)
-	if not IsValid(ent) then
-		if not cs_entity or not IsValid(cs_entity) then
+	if ent == nil or not ENTITY_IsValid(ent) then
+		if cs_entity == nil or not ENTITY_IsValid(cs_entity) then
 			cs_entity = ClientsideModel(tbl.model or "error.mdl", RENDERGROUP_OTHER)
 		end
 		ent = cs_entity
-		if ent:GetModelScale() ~= 1 then
-			ent:SetModelScale(1, 0.000001)
-			ent:Activate()
+		if ENTITY_GetModelScale(ent) ~= 1 then
+			ENTITY_SetModelScale(ent, 1, 0.000001)
+			ENTITY_Activate(ent)
+		end
+		for bone=0, ENTITY_GetBoneCount(ent)-1 do
+			ENTITY_ManipulateBoneScale(ent, bone, Vector(1, 1, 1))
 		end
 	end
 
-	if not IsValid(ent) then return end
+	-- just in case
+	if ent == nil or not ENTITY_IsValid(ent) then return end
 
-	ent:SetModel(tbl.model or "error.mdl")
-	ent:SetNoDraw(true)
+	ENTITY_SetModel(ent, tbl.model or "error.mdl")
+	ENTITY_SetNoDraw(ent, true)
 
-	ent:SetPos(tbl.pos or vector_origin)
-	ent:SetAngles(tbl.angle or angle_zero)
-	ent:DrawModel()
+	ENTITY_SetPos(ent, tbl.pos or vector_origin)
+	ENTITY_SetAngles(ent, tbl.angle or angle_zero)
+	ENTITY_DrawModel(ent)
 end
