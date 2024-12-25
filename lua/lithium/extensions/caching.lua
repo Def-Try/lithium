@@ -11,24 +11,41 @@ if CLIENT then
 	end
 end
 
+local ENTITY = FindMetaTable("Entity")
+local ENTITY_EntIndex = ENTITY.EntIndex
+local ENTITY_IsValid = ENTITY.IsValid
 _G.LITHIUM_entlist = _G.LITHIUM_entlist or {}
+local entlist = _G.LITHIUM_entlist
+_G.LITHIUM_OldEntity = _G.LITHIUM_OldEntity or Entity
+local OldEntity = _G.LITHIUM_OldEntity
+
+local tonumber = tonumber
+local isnumber = isnumber
 
 hook.Add("OnEntityCreated", "LITHIUM_CacheEntity", function(ent)
 	if not ent:IsValid() then return end
-	_G.LITHIUM_entlist[ent:EntIndex()] = ent
+	local idx = ENTITY_EntIndex(ent)
+	if idx == -1 then return end
+	if idx == 0 then return end
+	entlist[idx] = ent
 end)
 
 hook.Add("EntityRemoved", "LITHIUM_CacheEntity", function(ent, fullupdate)
 	if fullupdate then return end
-
-	_G.LITHIUM_entlist[ent:EntIndex()] = nil
+	local idx = ENTITY_EntIndex(ent)
+	if idx == -1 then return end
+	if idx == 0 then return end
+	entlist[idx] = nil
 end)
-_G.LITHIUM_OldEntity = _G.LITHIUM_OldEntity or Entity
 function Entity(entindex)
-	local ent = _G.LITHIUM_entlist[entindex] or _G.LITHIUM_entlist[tonumber(entindex)] or NULL
+	if not isnumber(entindex) then entindex = tonumber(entindex) end
+	local ent = entlist[entindex]
 	if not ent then
-		ent = _G.LITHIUM_OldEntity(entindex)
-		if ent and ent:IsValid() then _G.LITHIUM_entlist[entindex] = ent end
+		ent = OldEntity(entindex)
+		
+		if entindex ~= 0 then
+			if ent and ENTITY_IsValid(ent) then entlist[entindex] = ent end
+		end
 	end
 	return ent
 end
