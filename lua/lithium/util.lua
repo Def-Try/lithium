@@ -5,14 +5,12 @@ local MaterialCache = {}
 
 _G.LITHIUM_CreateConVar_old = _G.LITHIUM_CreateConVar_old or CreateConVar
 function CreateConVar(name, default, iFlags, helptext, min, max)
-	lithium.debug("[UTIL] ConVar Create: "..tostring(name))
 	local convar = LITHIUM_CreateConVar_old(name, default, iFlags, helptext, min, max)
 	ConVarCache[name] = convar
 	return convar
 end
 
 function GetConVar(name)
-	lithium.debug("[UTIL] ConVar Get: "..tostring(name))
 	local convar = ConVarCache[name]
 	if convar then
 		return convar
@@ -26,14 +24,12 @@ function GetConVar(name)
 end
 
 function GetConVarNumber(name)
-	lithium.debug("[UTIL] ConVar GetNumber: "..tostring(name))
 	if name == "maxplayers" then return game.MaxPlayers() end
 	local convar = GetConVar(name)
 	return convar and convar:GetFloat() or 0
 end
 
 function GetConVarString(name)
-	lithium.debug("[UTIL] ConVar GetString: "..tostring(name))
 	if name == "maxplayers" then return tostring(game.MaxPlayers()) end
 	local convar = GetConVar(name)
 	return convar and convar:GetString() or ""
@@ -41,7 +37,6 @@ end
 
 _G.LITHIUM_Material_old = _G.LITHIUM_Material_old or Material
 function Material(name, words)
-	lithium.debug(string.format("[UTIL] Material: %q %q", name, words))
 	if name == "" and words == nil then -- the fuck?
 		return LITHIUM_Material_old(name, words)
 	end
@@ -58,5 +53,5 @@ function Material(name, words)
 end
 
 function IsValid(data)
-	return data and data.IsValid and data:IsValid()
+	return data and (isnumber(data) or isstring(data) or data.IsValid and data:IsValid())
 end

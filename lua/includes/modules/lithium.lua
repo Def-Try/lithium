@@ -11,9 +11,3 @@ end
 function warn(text)
 	ErrorNoHalt("[LITHIUM] "..text.."\n")
 end
-
-local debug_ = false
-function debug(text)
-	if not debug_ then return end
-	log(text)
-end
